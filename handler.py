@@ -3,6 +3,16 @@
 from collections import UserDict
 from datetime import datetime
 import re
+import shelve
+
+
+def input_error(func):
+    def inner(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyError:
+            return "Can't find the record"
+    return inner
 
 
 class Field:
@@ -100,15 +110,6 @@ class Record(UserDict):
 
 
 class AddressBook(UserDict):
-    # the following code does not show the last page is the number of records on it is less than num
-    # def iterator(self, num: int = 2):
-    #     data = self.data
-    #     items = list(data.items())
-    #     for i in range(len(items) // num): #range is number of filled pages in the address book with num records on 1 page
-    #         if i == (len(items) // num):
-    #             _tmp = items[num * i:len(items)]
-    #         _tmp = items[num * i: (num * i) + num]  #records on any one page
-    #         yield _tmp
 
     def iterator(self, num: int = 2):
         data = self.data
@@ -130,8 +131,14 @@ class AddressBook(UserDict):
     def add_record(self, record: Record):
         self.data[record.name.value] = record
 
+    def save_to_file(self):
+        with shelve.open('address_book') as ab:
+            ab['contacts'] = self.data
+
 
 contacts_dict = AddressBook()
+with shelve.open('address_book') as ab:
+    contacts_dict.update(dict(ab['contacts']))
 
 
 def func_hello(*args, **kwargs):
@@ -152,9 +159,11 @@ def add_contact(name, phone=None, birthday=None):
             record_lookup.birthday = birthday
             return f'Birthday information updated for {name.capitalize()}'
     contacts_dict.add_record(record_new)
+    contacts_dict.save_to_file()
     return f'Information record for {name.capitalize()} added'
 
 
+@input_error
 def change_contact(name, phone: list, *args, **kwargs):
     record = contacts_dict.get(name)
     if isinstance(record, Record):
@@ -163,13 +172,16 @@ def change_contact(name, phone: list, *args, **kwargs):
                 record.change_phone(Phone(phone[0]), Phone(phone[1]))
                 return f'Contact {name.capitalize()} changed number {phone[0]} to number {phone[1]}'
         return f'Contact {name.capitalize()} has no number {phone[0]} on file. Number was not changed.'
+    contacts_dict.save_to_file()
     return f'Sorry, phone book has no entry with name {name}'
 
 
+@input_error
 def phone_contact(name, *args, **kwargs):
     return f"{name.capitalize()}'s numbers are {contacts_dict[name].phones}"
 
 
+@input_error
 def birthday_contact(name, *args, **kwargs):
     record_lookup = contacts_dict.get(name)
     if isinstance(record_lookup, Record):
@@ -186,11 +198,26 @@ def show_all(*args, **kwargs):
     result = ""
     for i in result_iter:
         result += f'{i}\n'
-    return result
+    return result.strip()
 
 
 def func_exit(*args, **kwargs):
-    return 'Good bye!'
+    contacts_dict.save_to_file()
+    return 'Address book saved to file.\nGood bye!'
+
+
+def func_search(*args, **kwargs):
+    search_input = input('Please, enter part of the name (lowercase) or phone number:')
+    with shelve.open('address_book') as ab:
+        data: UserDict = ab['contacts']
+        search_output = []
+        for value in data.values():
+            if search_input in str(value.name):
+                search_output.append(value)
+            for p in value.phones:
+                if search_input in str(p):
+                    search_output.append(value)
+        return search_output
 
 
 if __name__ == '__main__':

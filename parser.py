@@ -15,7 +15,7 @@ def normalize(raw_user_input: str) -> dict:
     user_input = raw_user_input.lower().strip()
     user_command: dict = {'command': None, 'name': None, 'phone': [], 'birthday': None}
 
-    if user_input in ['hello', 'show all', 'good buy', 'close', 'exit']:
+    if user_input in ['hello', 'show all', 'good buy', 'close', 'exit', 'search']:
         user_command['command'] = user_input
     else:
         user_input_list = user_input.split()

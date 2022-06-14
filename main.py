@@ -16,7 +16,7 @@ def input_error(func):
 
 
 COMMANDS = {func_hello: 'hello', show_all: 'show all', add_contact: 'add', change_contact: 'change',
-            phone_contact: 'phone', birthday_contact: 'birthday', func_exit: ['good buy', 'close', 'exit']}
+            phone_contact: 'phone', birthday_contact: 'birthday', func_exit: ['good buy', 'close', 'exit'], func_search: 'search'}
 
 
 @input_error
@@ -32,6 +32,7 @@ def output_func(user_command):
 
 
 def main():
+    print('Address book\nCommands:\nadd name phone DOB\nchange name old_phone new_phone\nshow all\nbirthday name\nphone name\nsearch')
     while True:
         user_input = input('>>>')
         user_command = normalize(user_input)
@@ -42,22 +43,5 @@ def main():
 
 
 if __name__ == '__main__':
-    filename = 'address_book.txt'
     main()
 
-#
-# def save_to_file:
-#     with shelve.open(filename) as ab:
-    #
-    # with shelve.open(filename) as ab:
-    #     user_input = input('To work with Address book print "main". To search by part or the name or phone number print "search".')
-    #     if user_input == 'main':
-    #         main()
-    #     elif user_input == 'search':
-    #         search_input = input('Please, enter part of the name (lowercase) or part of the phone number to search for the record.')
-    #         for line in ab:
-    #             if search_input in line:
-    #                 print(line)
-    #         print('No such record in the Address book.')
-    #     else:
-    #         print('Please, enter correct command')
